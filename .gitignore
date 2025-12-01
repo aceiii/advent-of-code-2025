@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+bin
+build
+node_modules
+.vscode
+__pycache__
+.sw*
+input/
