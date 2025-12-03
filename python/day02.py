@@ -13,18 +13,47 @@ def is_invalid(n):
     return False
 
 
+def numlen(n):
+    n = abs(n)
+    ln = 0
+    while n:
+        n //= 10
+        ln += 1
+    return ln
+
+
+def check_invalid_range(start, end):
+    n = ceil(numlen(start)) / 2)
+    m = ceil(numlenstr(end)) / 2)
+    p = 10**n
+    invalids = []
+    #print(start//p, end // p + 1)
+    for n in range(start // p, end // (10**m) + 1):
+        if n >= p:
+            p *= 10
+        nn = n * p + n
+        if nn >= start and nn <= end:
+            invalids.append(nn)
+    return invalids
+
+
 def part1(lines):
     ranges = []
     for line in lines[0].strip().split(','):
         a, b = line.strip().split('-')
         ranges.append((int(a, 10), int(b, 10)))
 
+    """
     answer = 0
     for (start, end) in ranges:
         for n in range(start, end+1):
             if is_invalid(n):
                 answer += n
+    """
 
+    answer = 0
+    for (start, end) in ranges:
+        answer += sum(check_invalid_range(start, end))
     return answer
 
 
@@ -54,7 +83,6 @@ def part2(lines):
         for n in range(start, end+1):
             if is_invalid2(n):
                 answer += n
-
     return answer
 
 
