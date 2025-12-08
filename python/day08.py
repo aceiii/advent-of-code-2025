@@ -65,7 +65,15 @@ def part1(lines):
 
 
 def part2(lines):
-    pass
+    points = parse(lines)
+    point_distances = map_distances(points)
+    distances = sorted(point_distances.items(), key=itemgetter(1, 0))
+    connections  = {p:i for i,p in enumerate(points)}
+    for (p1, p2), _ in distances:
+        union(connections, p1, p2)
+        if all(connections[c] == 0 for c in connections):
+            return p1[0] * p2[0]
+            break
 
 
 def main():
