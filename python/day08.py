@@ -4,6 +4,7 @@ import sys
 from math import prod
 from operator import itemgetter
 from collections import defaultdict
+from itertools import groupby
 
 
 def parse(lines):
@@ -25,30 +26,39 @@ def calc_dist(p1, p2):
 
 def map_distances(points):
     dist = {}
-    points = points[:]
-    while points:
-        p1 = points.pop()
-        for p2 in points:
+    n = len(points)
+    for i in range(n):
+        p1 = points[i]
+        for j in range(i+1, n):
+            p2 = points[j]
             d = calc_dist(p1, p2)
-            dist[(p1,p2)] = d
+            dist[(i, j)] = d
     return dist
 
 
-def union(connections, p1, p2):
+def union(connections, reverse_connections, count, p1, p2):
     c1 = connections[p1]
     c2 = connections[p2]
+    if c2 == c1:
+        return count
+
     if c2 < c1:
         c1, c2 = c2, c1
-    for p in connections:
-        if connections[p] == c2:
-            connections[p] = c1
+
+    for i in reverse_connections[c2]:
+        reverse_connections[c1].append(i)
+        connections[i] = c1
+    reverse_connections[c2] = []
+
+    return count-1
 
 
 def get_circuits(connections):
-    circ_map = defaultdict(lambda: [])
-    for point, cid in connections.items():
-        circ_map[cid].append(point)
-    return list(circ_map.values())
+    circuits = []
+    for key, group in groupby(sorted(connections)):
+        items = list(group)
+        circuits.append(items)
+    return circuits
 
 
 def part1(lines):
@@ -56,10 +66,11 @@ def part1(lines):
     points = parse(lines)
     point_distances = map_distances(points)
     distances = sorted(point_distances.items(), key=itemgetter(1, 0))
-    connections  = {p:i for i,p in enumerate(points)}
-    for i in range(N):
-        (p1, p2), _ = distances[i]
-        union(connections, p1, p2)
+    connections = list(range(len(points)))
+    reverse_connections = {v:[v] for v in connections}
+    count = len(connections)
+    for (i, j), _ in distances[:N]:
+        count = union(connections, reverse_connections, count, i, j)
     circuits = sorted(get_circuits(connections), key=lambda c: len(c), reverse=True)
     return prod(len(c) for c in circuits[:3])
 
@@ -68,10 +79,14 @@ def part2(lines):
     points = parse(lines)
     point_distances = map_distances(points)
     distances = sorted(point_distances.items(), key=itemgetter(1, 0))
-    connections  = {p:i for i,p in enumerate(points)}
-    for (p1, p2), _ in distances:
-        union(connections, p1, p2)
-        if all(connections[c] == 0 for c in connections):
+    connections = list(range(len(points)))
+    reverse_connections = {v:[v] for v in connections}
+    count = len(connections)
+    for (i, j), _ in distances:
+        count = union(connections, reverse_connections, count, i, j)
+        if count == 1:
+            p1 = points[i]
+            p2 = points[j]
             return p1[0] * p2[0]
             break
 
